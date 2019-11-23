@@ -1140,7 +1140,7 @@ class BookMyShowBridge extends BridgeAbstract {
 		$table = '';
 		foreach ($headers as $key => $header) {
 			if ($header == 'Language') {
-				$this->languages = [$event[$key]];
+				$this->languages = array($event[$key]);
 			}
 			$table .= <<<EOT
 			<tr>
@@ -1173,12 +1173,14 @@ EOT;
 	 */
 	private function generateInnerMovieDetails($data){
 		// Show list of languages and list of formats
-		$headers = ['EventLanguage', 'EventDimension'];
+		$headers = array('EventLanguage', 'EventDimension');
 		// if any of these has a Y for any of the screenings, mark it as YES
-		$booleanHeaders = ['EventIsAtmosEnabled', 'IsMovieClubEnabled'];
+		$booleanHeaders = array(
+			'EventIsAtmosEnabled', 'IsMovieClubEnabled'
+		);
 
-		$items = [];
-		
+		$items = array();
+
 		// Throw values inside $items[$headerName]
 		foreach ($data as $row) {
 			foreach ($headers as $header) {
@@ -1193,22 +1195,22 @@ EOT;
 		foreach ($headers as $header) {
 			$items[$header] = array_unique($items[$header]);
 
-			if ($header == 'EventLanguage'){
+			if ($header == 'EventLanguage') {
 				$this->languages = $items[$header];
 			}
 		}
 
-		$html = "";
+		$html = '';
 
 		// Generate a list for first kind of entries
 		foreach ($headers as $header) {
-			$html .= self::INNER_MOVIE_HEADERS[$header] . ": " . join(", ", $items[$header]) . "<br>";
+			$html .= self::INNER_MOVIE_HEADERS[$header] . ': ' . join(', ', $items[$header]) . '<br>';
 		}
 
 		// Put a yes for the boolean entries
 		foreach ($booleanHeaders as $header) {
-			if(in_array('Y', $items[$header])){
-				$html .= self::INNER_MOVIE_HEADERS[$header] . ": Yes<br>";
+			if(in_array('Y', $items[$header])) {
+				$html .= self::INNER_MOVIE_HEADERS[$header] . ': Yes<br>';
 			}
 		}
 
@@ -1268,7 +1270,7 @@ EOT;
 	}
 
 	private function generateEventData($event, $category){
-		if($category == self::MOVIES){
+		if($category == self::MOVIES) {
 			return $this->generateMoviesData($event);
 		}
 
@@ -1305,16 +1307,15 @@ EOT;
 
 		$data = json_decode(getContents($url, $headers), true);
 
-		if ($category == self::MOVIES){
+		if ($category == self::MOVIES) {
 			$data = $data['moviesData']['BookMyShow']['arrEvents'];
-		}
-		else {
+		} else {
 			$data = $data['data']['BookMyShow']['arrEvent'];
 		}
 
 		foreach ($data as $event) {
 			$item = $this->generateEventData($event, $category);
-			if ($this->matchesFilters($category)){
+			if ($this->matchesFilters($category)) {
 				$this->items[] = $item;
 			}
 		}
