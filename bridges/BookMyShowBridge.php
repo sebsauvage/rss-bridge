@@ -1026,6 +1026,22 @@ class BookMyShowBridge extends BridgeAbstract {
 					'Events' => self::EVENTS,
 					'Movies' => self::MOVIES,
 				),
+			),
+			'language' => array(
+				'name' => 'Language',
+				'type' => 'list',
+				'defaultValue' => 'all',
+				'values' => array(
+					'All' => 'all',
+					'Kannada' => 'Kannada',
+					'English' => 'English',
+					'Hindi' => 'Hindi',
+					'Telugu' => 'Telugu',
+					'Tamil' => 'Tamil',
+					'Malayalam' => 'Malayalam',
+					'Gujarati' => 'Gujarati',
+					'Assamese' => 'Assamese',
+				)
 			)
 		)
 	);
@@ -1080,10 +1096,6 @@ class BookMyShowBridge extends BridgeAbstract {
 		return $html;
 	}
 
-	// private function generateMovieHtml($event){
-	// 	// print_r($event);
-	// }
-
 	/**
 	 * Generates a simple Venue HTML, even for multiple venues
 	 * spread across multiple dates as a description list.
@@ -1127,6 +1139,9 @@ class BookMyShowBridge extends BridgeAbstract {
 	private function generateEventDetailsTable($event, $headers = self::TABLE_HEADERS){
 		$table = '';
 		foreach ($headers as $key => $header) {
+			if ($header == 'Language') {
+				$this->languages = [$event[$key]];
+			}
 			$table .= <<<EOT
 			<tr>
 				<th>$header</th>
@@ -1177,6 +1192,10 @@ EOT;
 		// Remove duplicate values (if all screenings are 2D for eg)
 		foreach ($headers as $header) {
 			$items[$header] = array_unique($items[$header]);
+
+			if ($header == 'EventLanguage'){
+				$this->languages = $items[$header];
+			}
 		}
 
 		$html = "";
@@ -1253,13 +1272,13 @@ EOT;
 			return $this->generateMoviesData($event);
 		}
 
-		return $this->generatGenericEventData($event);
+		return $this->generateGenericEventData($event, $category);
 	}
 
 	/**
 	 * Takes an event data as array and returns data for RSS Post
 	 */
-	private function generatGenericEventData($event){
+	private function generateGenericEventData($event, $category){
 		return array(
 			'uri' => $event['FShareURL'],
 			'title' => $event['EventTitle'],
@@ -1294,8 +1313,22 @@ EOT;
 		}
 
 		foreach ($data as $event) {
-			$this->items[] = $this->generateEventData($event, $category);
+			$item = $this->generateEventData($event, $category);
+			if ($this->matchesFilters($category)){
+				$this->items[] = $item;
+			}
 		}
+	}
+
+	/**
+	 * Currently only checks if the language filter matches
+	 */
+	private function matchesFilters($category){
+		if ($this->getInput('language') !== 'all') {
+			$language = $this->getInput('language');
+			return in_array($language, $this->languages);
+		}
+		return true;
 	}
 
 	public function getName(){
