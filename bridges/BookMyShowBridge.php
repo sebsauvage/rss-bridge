@@ -4,6 +4,7 @@ class BookMyShowBridge extends BridgeAbstract {
 	const MAINTAINER = 'captn3m0';
 	const NAME = 'BookMyShow Bridge';
 	const URI = 'https://in.bookmyshow.com';
+	const MOVIES_IMAGE_BASE_FORMAT = 'https://in.bmscdn.com/iedb/movies/images/mobile/thumbnail/large/%s.jpg';
 	const DESCRIPTION = 'Returns the latest events on BookMyShow';
 
 	const PLAYS = 'PL';
@@ -1023,7 +1024,7 @@ class BookMyShowBridge extends BridgeAbstract {
 				'values' => array(
 					'Plays' => self::PLAYS,
 					'Events' => self::EVENTS,
-					// 'Movies' => self::MOVIES,
+					'Movies' => self::MOVIES,
 				),
 			)
 		)
@@ -1039,6 +1040,18 @@ class BookMyShowBridge extends BridgeAbstract {
 		'EventSoldOut' => 'Sold Out (Y/N)',
 	);
 
+	const MOVIE_TABLE_HEADERS = array(
+		'Duration' => 'Screentime',
+		'EventCensor' => 'Rating',
+	);
+
+	const INNER_MOVIE_HEADERS = array(
+		'EventLanguage' => 'Language',
+		'EventDimension' => 'Formats',
+		'EventIsAtmosEnabled' => 'Dolby Atmos',
+		'IsMovieClubEnabled' => 'Movie Club'
+	);
+
 	const URL_PREFIX = 'https://in.bookmyshow.com/serv/getData?cmd=QUICKBOOK&type=';
 
 	private function makeUrl($category){
@@ -1052,7 +1065,6 @@ class BookMyShowBridge extends BridgeAbstract {
 	 */
 	private function generateEventHtml($event, $category){
 		switch ($category) {
-			// Currently not supported
 			case self::MOVIES:
 				$html = $this->generateMovieHtml($event);
 				break;
@@ -1067,6 +1079,10 @@ class BookMyShowBridge extends BridgeAbstract {
 
 		return $html;
 	}
+
+	// private function generateMovieHtml($event){
+	// 	// print_r($event);
+	// }
 
 	/**
 	 * Generates a simple Venue HTML, even for multiple venues
@@ -1108,9 +1124,9 @@ class BookMyShowBridge extends BridgeAbstract {
 	 * Generates a simple Table with event Data
 	 * @todo Add support for jsonGenre as a tags row
 	 */
-	private function generateEventDetailsTable($event){
+	private function generateEventDetailsTable($event, $headers = self::TABLE_HEADERS){
 		$table = '';
-		foreach (self::TABLE_HEADERS as $key => $header) {
+		foreach ($headers as $key => $header) {
 			$table .= <<<EOT
 			<tr>
 				<th>$header</th>
@@ -1136,6 +1152,131 @@ EOT;
 EOT;
 	}
 
+	/**
+	 * Converts some movie details from child entries, such as language
+	 * into a single row item, either as a list, or as a Y/N
+	 */
+	private function generateInnerMovieDetails($data){
+		// Show list of languages and list of formats
+		$headers = ['EventLanguage', 'EventDimension'];
+		// if any of these has a Y for any of the screenings, mark it as YES
+		$booleanHeaders = ['EventIsAtmosEnabled', 'IsMovieClubEnabled'];
+
+		$items = [];
+		
+		// Throw values inside $items[$headerName]
+		foreach ($data as $row) {
+			foreach ($headers as $header) {
+				$items[$header][] = $row[$header];
+			}
+			foreach ($booleanHeaders as $header) {
+				$items[$header][] = $row[$header];
+			}
+		}
+
+		// Remove duplicate values (if all screenings are 2D for eg)
+		foreach ($headers as $header) {
+			$items[$header] = array_unique($items[$header]);
+		}
+
+		$html = "";
+
+		// Generate a list for first kind of entries
+		foreach ($headers as $header) {
+			$html .= self::INNER_MOVIE_HEADERS[$header] . ": " . join(", ", $items[$header]) . "<br>";
+		}
+
+		// Put a yes for the boolean entries
+		foreach ($booleanHeaders as $header) {
+			if(in_array('Y', $items[$header])){
+				$html .= self::INNER_MOVIE_HEADERS[$header] . ": Yes<br>";
+			}
+		}
+
+		return $html;
+	}
+
+	private function generateMovieHtml($eventGroup){
+		$data = $eventGroup['ChildEvents'][0];
+		$table = $this->generateEventDetailsTable($data, self::MOVIE_TABLE_HEADERS);
+
+		$imgsrc = sprintf(self::MOVIES_IMAGE_BASE_FORMAT, $data['EventImageCode']);
+
+		$url = $this->generateMovieUrl($eventGroup);
+
+		$innerHtml = $this->generateInnerMovieDetails($eventGroup['ChildEvents']);
+
+		return <<<EOT
+		<img title="Movie Poster" src="$imgsrc"></img>
+		<br>
+		$table
+		<br>
+		$innerHtml
+		<br>
+		More Details are available on the <a href="$url">BookMyShow website</a> and a trailer is available
+		<a href="${data['EventTrailerURL']}" title="Trailer URL">here</a>
+EOT;
+
+	}
+
+	/**
+	 * Generates a canonical movie URL
+	 */
+	private function generateMovieUrl($eventGroup){
+		return self::URI . '/movies/' . $eventGroup['EventURLTitle'] . $eventGroup['EventCode'];
+	}
+
+	private function generateMoviesData($eventGroup){
+		// Additional data picked up from the first Child Event
+		$data = $eventGroup['ChildEvents'][0];
+
+		return array(
+			'uri' => $this->generateMovieUrl($eventGroup),
+			'title' => $eventGroup['EventTitle'],
+			'timestamp' => $data['EventDate'],
+			'author' => 'BookMyShow',
+			'content' => $this->generateMovieHtml($eventGroup),
+			'enclosures' => array(
+				sprintf(self::MOVIES_IMAGE_BASE_FORMAT, $data['EventImageCode']),
+			),
+			// Sample Input = |ADVENTURE|ANIMATION|COMEDY|
+			// Sample Output = ['Adventure', 'Animation', 'Comedy']
+			'categories' => array_filter(
+				explode('|', ucwords(strtolower($eventGroup['EventGrpGenre']), '|'))
+			),
+			'uid' => $eventGroup['EventGroup']
+		);
+	}
+
+	private function generateEventData($event, $category){
+		if($category == self::MOVIES){
+			return $this->generateMoviesData($event);
+		}
+
+		return $this->generatGenericEventData($event);
+	}
+
+	/**
+	 * Takes an event data as array and returns data for RSS Post
+	 */
+	private function generatGenericEventData($event){
+		return array(
+			'uri' => $event['FShareURL'],
+			'title' => $event['EventTitle'],
+			'timestamp' => $event['Event_dtmCreated'],
+			'author' => 'BookMyShow',
+			'content' => $this->generateEventHtml($event, $category),
+			'enclosures' => array(
+				$event['BannerURL'],
+			),
+			'categories' => array_merge(
+				array(self::CATEGORIES[$category]),
+				$event['GenreArray']
+			),
+			'uid' => $event['EventGroupCode']
+		);
+	}
+
 	public function collectData(){
 		$city = $this->getInput('city');
 		$category = $this->getInput('category');
@@ -1145,22 +1286,15 @@ EOT;
 
 		$data = json_decode(getContents($url, $headers), true);
 
-		foreach ($data['data']['BookMyShow']['arrEvent'] as $event) {
-			$this->items[] = array(
-				'uri' => $event['FShareURL'],
-				'title' => $event['EventTitle'],
-				'timestamp' => $event['Event_dtmCreated'],
-				'author' => 'BookMyShow',
-				'content' => $this->generateEventHtml($event, $category),
-				'enclosures' => array(
-					$event['BannerURL'],
-				),
-				'categories' => array_merge(
-					array(self::CATEGORIES[$category]),
-					$event['GenreArray']
-				),
-				'uid' => $event['EventGroupCode']
-			);
+		if ($category == self::MOVIES){
+			$data = $data['moviesData']['BookMyShow']['arrEvents'];
+		}
+		else {
+			$data = $data['data']['BookMyShow']['arrEvent'];
+		}
+
+		foreach ($data as $event) {
+			$this->items[] = $this->generateEventData($event, $category);
 		}
 	}
 
