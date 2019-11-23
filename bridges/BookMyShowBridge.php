@@ -1046,6 +1046,8 @@ class BookMyShowBridge extends BridgeAbstract {
 		)
 	);
 
+	// Headers used in the generated table for Events/Plays
+	// Left is the BMS API Key, and right is the rendered version
 	const TABLE_HEADERS = array(
 		'Genre' => 'Genre',
 		'Language' => 'Language',
@@ -1056,11 +1058,16 @@ class BookMyShowBridge extends BridgeAbstract {
 		'EventSoldOut' => 'Sold Out (Y/N)',
 	);
 
+	// Picked from EventGroup entry for movies
+	// Left is BMS API Ke, and right is the rendered version
 	const MOVIE_TABLE_HEADERS = array(
 		'Duration' => 'Screentime',
 		'EventCensor' => 'Rating',
 	);
 
+	// Picked from the ChildEvents entries inside a Event Group
+	// for Movies
+	// Left is BMS API Key, right is rendered version
 	const INNER_MOVIE_HEADERS = array(
 		'EventLanguage' => 'Language',
 		'EventDimension' => 'Formats',
@@ -1068,6 +1075,8 @@ class BookMyShowBridge extends BridgeAbstract {
 		'IsMovieClubEnabled' => 'Movie Club'
 	);
 
+	// Primary URL for fetching information
+	// The city information is passed via a cookie
 	const URL_PREFIX = 'https://in.bookmyshow.com/serv/getData?cmd=QUICKBOOK&type=';
 
 	private function makeUrl($category){
@@ -1104,22 +1113,6 @@ class BookMyShowBridge extends BridgeAbstract {
 		$html = '<h3>Venues</h3>';
 
 		foreach ($venues as $i => $venueData) {
-
-			// $date = "Not Accurately Available yet";
-
-			// if(isset($dates[$i])) {
-			// 	$dateData = $dates[$i];
-			// 	$startDate = $dateData['ShowDateDisplay'];
-			// 	$endDate = $dateData['ShowEndDateDisplay'];
-
-			// 	if($startDate!==$endDate){
-			// 		$date = $startEnd;
-			// 	}
-			// 	else{
-			// 		$date = "$startDate - $endDate";
-			// 	}
-			// }
-
 			$venueName = $venueData['VenueName'];
 			$address = $venueData['VenueAddress'];
 			$lat = $venueData['VenueLatitude'];
@@ -1332,6 +1325,9 @@ EOT;
 		return true;
 	}
 
+	/**
+	 * Generates the RSS Feed title
+	 */
 	public function getName(){
 		$city = $this->getInput('city');
 		$category = $this->getInput('category');
@@ -1339,6 +1335,11 @@ EOT;
 			$categoryName = self::CATEGORIES[$category];
 			$cityNames = array_flip(self::CITIES);
 			$cityName = $cityNames[$city];
+			if ($this->getInput('language')!=='null') {
+				$l = $this->getInput('language');
+				// Sample: English Movies in Delhi
+				return "BookMyShow: $language $categoryName in $cityName";
+			}
 			return "BookMyShow: $categoryName in $cityName";
 		}
 
