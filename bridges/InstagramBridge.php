@@ -276,7 +276,7 @@ class InstagramBridge extends BridgeAbstract {
 		}
 		return parent::getURI();
 	}
-	
+
 	public function detectParameters($url){
 		$params = array();
 
