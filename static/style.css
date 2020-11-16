@@ -64,6 +64,7 @@ header > section.critical-warning {
 }
 
 select,
+textarea,
 input[type="text"],
 input[type="number"] {
 	background-color: white;
@@ -75,6 +76,7 @@ input[type="number"] {
 }
 
 select:focus,
+textarea:focus,
 input[type="text"]:focus,
 input[type="number"]:focus {
 	outline: none;
@@ -261,17 +263,13 @@ form {
 	margin-bottom: 6px;
 }
 
-form {
+form, h5 {
 	display: none;
 }
 
 select {
 	padding: 5px 10px;
 	margin-left: 8px;
-}
-
-h5 {
-	display: none;
 }
 
 /* Show more / less */
@@ -321,6 +319,14 @@ h5 {
 
 .advice > li {
 	text-align: left;
+}
+
+.copyfield {
+	box-sizing: border-box;
+	width: 100%;
+	margin: 10px 0;
+	resize: vertical;
+	overflow: auto;
 }
 
 @media screen and (max-width: 767px) {

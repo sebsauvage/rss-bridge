@@ -29,21 +29,24 @@ final class BridgeList {
 		return <<<EOD
 <head>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	<meta name="description" content="RSS-Bridge" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="RSS-Bridge">
 	<title>RSS-Bridge</title>
 	<link href="static/style.css" rel="stylesheet">
 	<link rel="icon" type="image/png" href="static/favicon.png">
-	<script src="static/search.js"></script>
-	<script src="static/select.js"></script>
-	<noscript>
-		<style>
-			.searchbar {
-				display: none;
-			}
-		</style>
-	</noscript>
 </head>
+EOD;
+	}
+
+	/**
+	 * Get the document scripts
+	 *
+	 * @return string The document scripts
+	 */
+	private static function getScripts() {
+		return <<<EOD
+<script src="static/search.js"></script>
+<script src="static/select.js"></script>
 EOD;
 	}
 
@@ -132,11 +135,14 @@ EOD;
 		$query = filter_input(INPUT_GET, 'q', FILTER_SANITIZE_SPECIAL_CHARS);
 
 		return <<<EOD
-<section class="searchbar">
+<section class="searchbar" style="display:none">
 	<h3>Search</h3>
 	<input type="text" name="searchfield"
 		id="searchfield" placeholder="Insert URL or bridge name"
-		onchange="search()" onkeyup="search()" value="{$query}">
+		value="{$query}">
+	<div class="extraoptions">
+		<label><input type="checkbox" id="extraoption-renderFeedUrl"> Show feed URL instead of redirecting</label>
+	</div>
 </section>
 EOD;
 	}
@@ -203,11 +209,12 @@ EOD;
 
 		return '<!DOCTYPE html><html lang="en">'
 		. BridgeList::getHead()
-		. '<body onload="search()">'
+		. '<body>'
 		. BridgeList::getHeader()
 		. BridgeList::getSearchbar()
 		. BridgeList::getBridges($showInactive, $totalBridges, $totalActiveBridges)
 		. BridgeList::getFooter($totalBridges, $totalActiveBridges, $showInactive)
+		. BridgeList::getScripts()
 		. '</body></html>';
 
 	}
