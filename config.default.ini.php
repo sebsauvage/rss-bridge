@@ -81,3 +81,10 @@ file = "cache.sqlite"
 [MemcachedCache]
 host = "localhost"
 port = 11211
+
+; --- Bridge specific configuration --------------------------------------------
+
+[YouTubeAPIBridge]
+; To obtain a YouTube Data API key, visit
+; https://console.developers.google.com
+api_key = ""

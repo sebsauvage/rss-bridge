@@ -219,7 +219,7 @@ final class Configuration {
 	 */
 	public static function getConfig($section, $key) {
 
-		if(array_key_exists($section, self::$config) && array_key_exists($key, self::$config[$section])) {
+		if (isset(self::$config[$section][$key])) {
 			return self::$config[$section][$key];
 		}
 
