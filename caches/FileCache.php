@@ -6,6 +6,15 @@ class FileCache implements CacheInterface {
 	protected $path;
 	protected $key;
 
+	public function __construct() {
+		if (!is_writable(PATH_CACHE)) {
+			returnServerError(
+				'RSS-Bridge does not have write permissions for '
+				. PATH_CACHE . '!'
+			);
+		}
+	}
+
 	public function loadData(){
 		if(file_exists($this->getCacheFile())) {
 			return unserialize(file_get_contents($this->getCacheFile()));

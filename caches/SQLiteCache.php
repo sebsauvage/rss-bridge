@@ -13,6 +13,13 @@ class SQLiteCache implements CacheInterface {
 			die('"sqlite3" extension not loaded. Please check "php.ini"');
 		}
 
+		if (!is_writable(PATH_CACHE)) {
+			returnServerError(
+				'RSS-Bridge does not have write permissions for '
+				. PATH_CACHE . '!'
+			);
+		}
+
 		$file = Configuration::getConfig(get_called_class(), 'file');
 		if (empty($file)) {
 			die('Configuration for ' . get_called_class() . ' missing. Please check your ' . FILE_CONFIG);

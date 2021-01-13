@@ -102,10 +102,6 @@ final class Configuration {
 		if(!extension_loaded('json'))
 			self::reportError('"json" extension not loaded. Please check "php.ini"');
 
-		// Check cache folder permissions (write permissions required)
-		if(!is_writable(PATH_CACHE))
-			self::reportError('RSS-Bridge does not have write permissions for ' . PATH_CACHE . '!');
-
 	}
 
 	/**
