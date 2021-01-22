@@ -22,6 +22,7 @@ class CodebergBridge extends BridgeAbstract {
 				'name' => 'Repository',
 				'type' => 'text',
 				'exampleValue' => 'username/repo',
+				'title' => 'username and repository from URL. codeberg.org/username/repo e.g: codeberg.org/Codeberg/Design',
 				'required' => true,
 			)
 		)
