@@ -65,11 +65,11 @@ class CodebergBridge extends BridgeAbstract {
 
 				return $this->getInput('repo') . ' Commits (' . $this->getBranch() . ' branch) - ' . self::NAME;
 			case 'Issues':
-					return $this->getInput('repo') . ' Issues - ' . self::NAME;
+				return $this->getInput('repo') . ' Issues - ' . self::NAME;
 			case 'Pull Requests':
-					return $this->getInput('repo') . ' Pull Requests - ' . self::NAME;
+				return $this->getInput('repo') . ' Pull Requests - ' . self::NAME;
 			case 'Releases':
-					return $this->getInput('repo') . ' Releases - ' . self::NAME;
+				return $this->getInput('repo') . ' Releases - ' . self::NAME;
 			default: return parent::getName();
 		}
 	}
