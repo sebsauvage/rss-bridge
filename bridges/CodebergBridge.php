@@ -6,12 +6,6 @@ class CodebergBridge extends BridgeAbstract {
 	const MAINTAINER = 'VerifiedJoseph';
 	const PARAMETERS = array(
 		'Commits' => array(
-			'repo' => array(
-				'name' => 'Repository',
-				'type' => 'text',
-				'exampleValue' => 'username/repo',
-				'required' => true,
-			),
 			'branch' => array(
 				'name' => 'branch',
 				'type' => 'text',
