@@ -167,20 +167,53 @@ class CodebergBridge extends BridgeAbstract {
 	private function extractReleases($html) {
 		$ul = $html->find('ul#release-list', 0);
 
-		foreach ($ul->find('li') as $li) {
+		foreach ($ul->find('li.ui.grid') as $li) {
 			$item = array();
 
-			if (!$li->find('h3', 0)) {
-				continue;
+			if ($li->find('h3', 0)) { // Release
+				$item['title'] = $li->find('h3', 0)->plaintext;
+				$item['uri'] = $li->find('h3', 0)->find('a', 0)->href;
+
+				$item['content'] = $li->find('div.markdown', 0);
+				$item['content'] .= $this->extractDownloads($li->find('div.download', 0));
+
+				$item['timestamp'] = $li->find('span.time', 0)->find('span', 0)->title;
+				$item['author'] = $li->find('span.author', 0)->find('a', 0)->plaintext;
 			}
 
-			$item['title'] = $li->find('h3', 0)->plaintext;
-			$item['uri'] = $li->find('h3', 0)->find('a', 0)->href;
-			$item['content'] = $li->find('div.markdown', 0);
-			$item['timestamp'] = $li->find('span.time', 0)->find('span', 0)->title;
-			$item['author'] = $li->find('span.author', 0)->find('a', 0)->plaintext;
+			if ($li->find('h4', 0)) { // Tag
+				$item['title'] = $li->find('h4', 0)->plaintext;
+				$item['uri'] = $li->find('h4', 0)->find('a', 0)->href;
+
+				$item['content'] = <<<HTML
+<strong>Commit</strong>
+<p>{$li->find('div.download', 0)->find('a', 0)}</p>
+HTML;
+
+				$item['content'] .= $this->extractDownloads($li->find('div.download', 0), true);
+				$item['timestamp'] = $li->find('span.time', 0)->find('span', 0)->title;
+			}
 
 			$this->items[] = $item;
 		}
+	}
+
+	private function extractDownloads($html, $skipFirst = false) {
+		$downloads = '';
+
+		foreach ($html->find('a') as $index => $a) {
+			if ($skipFirst === true && $index === 0) {
+				continue;
+			}
+
+			$downloads .= <<<HTML
+{$a}<br>
+HTML;
+		}
+
+		return <<<EOD
+<strong>Downloads</strong>
+<p>{$downloads}</p>
+EOD;
 	}
 }
