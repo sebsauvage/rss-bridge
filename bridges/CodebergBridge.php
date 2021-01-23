@@ -70,7 +70,8 @@ class CodebergBridge extends BridgeAbstract {
 				return $this->getInput('repo') . ' Pull Requests - ' . self::NAME;
 			case 'Releases':
 				return $this->getInput('repo') . ' Releases - ' . self::NAME;
-			default: return parent::getName();
+			default: 
+				return parent::getName();
 		}
 	}
 
@@ -84,7 +85,8 @@ class CodebergBridge extends BridgeAbstract {
 				return self::URI . $this->getInput('repo') . '/pulls';
 			case 'Releases':
 				return self::URI . $this->getInput('repo') . '/releases';
-			default: return parent::getURI();
+			default: 
+				return parent::getURI();
 		}
 	}
 
