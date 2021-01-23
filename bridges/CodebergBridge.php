@@ -30,7 +30,6 @@ class CodebergBridge extends BridgeAbstract {
 
 	const CACHE_TIMEOUT = 3600;
 
-	private $feedName = '';
 	private $defaultBranch = 'main';
 
 	public function collectData() {
