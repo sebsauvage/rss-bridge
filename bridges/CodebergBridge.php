@@ -28,7 +28,7 @@ class CodebergBridge extends BridgeAbstract {
 		)
 	);
 
-	const CACHE_TIMEOUT = 3600;
+	const CACHE_TIMEOUT = 1800;
 
 	private $defaultBranch = 'main';
 
