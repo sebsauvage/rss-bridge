@@ -166,6 +166,9 @@ class CodebergBridge extends BridgeAbstract {
 			$item['timestamp'] = $li->find('p.desc', 0)->find('span', 0)->title;
 			$item['author'] = $li->find('p.desc', 0)->find('a', 0)->plaintext;
 
+			// Fetch pull request page
+			$pullRequestPage = getSimpleHTMLDOMCached($item['uri'], 3600)
+				or returnServerError('Could not request: ' . $item['uri']);
 
 			$pullRequestPage = defaultLinkTo($pullRequestPage, self::URI);
 
