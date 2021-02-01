@@ -137,6 +137,14 @@ class CodebergBridge extends BridgeAbstract {
 			$item['timestamp'] = $li->find('p.desc', 0)->find('span', 0)->title;
 			$item['author'] = $li->find('p.desc', 0)->find('a', 0)->plaintext;
 
+			// Fetch issue page
+			$issuePage = getSimpleHTMLDOMCached($item['uri'], 3600)
+				or returnServerError('Could not request: ' . $item['uri']);
+
+			$issuePage = defaultLinkTo($issuePage, self::URI);
+
+			$item['content'] = $issuePage->find('ui.timeline', 0)->find('div.render-content.markdown', 0);
+
 			foreach ($li->find('a.ui.label') as $label) {
 				$item['categories'][] = $label->plaintext;
 			}
@@ -157,6 +165,11 @@ class CodebergBridge extends BridgeAbstract {
 			$item['uri'] = $li->find('a.title', 0)->href;
 			$item['timestamp'] = $li->find('p.desc', 0)->find('span', 0)->title;
 			$item['author'] = $li->find('p.desc', 0)->find('a', 0)->plaintext;
+
+
+			$pullRequestPage = defaultLinkTo($pullRequestPage, self::URI);
+
+			$item['content'] = $pullRequestPage->find('ui.timeline', 0)->find('div.render-content.markdown', 0);
 
 			foreach ($li->find('a.ui.label') as $label) {
 				$item['categories'][] = $label->plaintext;
