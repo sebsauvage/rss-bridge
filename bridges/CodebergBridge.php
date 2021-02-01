@@ -92,6 +92,8 @@ class CodebergBridge extends BridgeAbstract {
 		switch($this->queriedContext) {
 			case 'Commits':
 				return self::URI . $this->getInput('repo') . '/commits/branch/' . $this->getBranch();
+			case 'Issues':
+				return self::URI . $this->getInput('repo') . '/issues/';
 			case 'Issue Comments':
 				return self::URI . $this->getInput('repo') . '/issues/' . $this->getInput('issueId');
 			case 'Pull Requests':
