@@ -15,6 +15,13 @@ class CodebergBridge extends BridgeAbstract {
 			),
 		),
 		'Issues' => array(),
+		'Issue Comments' => array(
+			'issueId' => array(
+				'name' => 'Issue ID',
+				'type' => 'text',
+				'required' => true,
+			)
+		),
 		'Pull Requests' => array(),
 		'Releases' => array(),
 		'global' => array(
@@ -31,12 +38,13 @@ class CodebergBridge extends BridgeAbstract {
 	const CACHE_TIMEOUT = 1800;
 
 	private $defaultBranch = 'main';
-
+	private $issueTitle = '';
+	
 	public function collectData() {
 		$html = getSimpleHTMLDOM($this->getURI())
 			or returnServerError('Could not request: ' . $this->getURI());
 
-		$html = defaultLinkTo($html, self::URI);
+		$html = defaultLinkTo($html, $this->getURI());
 
 		switch($this->queriedContext) {
 			case 'Commits':
@@ -44,6 +52,9 @@ class CodebergBridge extends BridgeAbstract {
 				break;
 			case 'Issues':
 				$this->extractIssues($html);
+				break;
+			case 'Issue Comments':
+				$this->extractIssueComments($html);
 				break;
 			case 'Pull Requests':
 				$this->extractPulls($html);
@@ -66,6 +77,8 @@ class CodebergBridge extends BridgeAbstract {
 				return $this->getInput('repo') . ' Commits (' . $this->getBranch() . ' branch) - ' . self::NAME;
 			case 'Issues':
 				return $this->getInput('repo') . ' Issues - ' . self::NAME;
+			case 'Issue Comments':
+				return $this->issueTitle . ' - Issue Comments - ' . self::NAME;
 			case 'Pull Requests':
 				return $this->getInput('repo') . ' Pull Requests - ' . self::NAME;
 			case 'Releases':
@@ -79,8 +92,8 @@ class CodebergBridge extends BridgeAbstract {
 		switch($this->queriedContext) {
 			case 'Commits':
 				return self::URI . $this->getInput('repo') . '/commits/branch/' . $this->getBranch();
-			case 'Issues':
-				return self::URI . $this->getInput('repo') . '/issues';
+			case 'Issue Comments':
+				return self::URI . $this->getInput('repo') . '/issues/' . $this->getInput('issueId');
 			case 'Pull Requests':
 				return self::URI . $this->getInput('repo') . '/pulls';
 			case 'Releases':
@@ -148,6 +161,32 @@ class CodebergBridge extends BridgeAbstract {
 			foreach ($li->find('a.ui.label') as $label) {
 				$item['categories'][] = $label->plaintext;
 			}
+
+			$this->items[] = $item;
+		}
+	}
+
+	private function extractIssueComments($html) {
+		$this->issueTitle = $html->find('span#issue-title', 0)->plaintext 
+			. ' (' . $html->find('span.index', 0)->plaintext . ')';
+
+		foreach ($html->find('ui.timeline > div.timeline-item.comment') as $div) {
+			$item = array();
+
+			if ($div->class === 'timeline-item comment merge box') {
+				continue;
+			}
+
+			$item['title'] = $this->ellipsisTitle($div->find('div.render-content.markdown', 0)->plaintext);
+			$item['uri'] = $div->find('span.text.grey', 0)->find('a', 1)->href;
+			$item['content'] = $div->find('div.render-content.markdown', 0);
+
+			if ($div->find('div.dropzone-attachments', 0)) {
+				$item['content'] .= $div->find('div.dropzone-attachments', 0);
+			}
+
+			$item['author'] = $div->find('a.author', 0)->innertext;
+			$item['timestamp'] = $div->find('span.time-since', 0)->title;
 
 			$this->items[] = $item;
 		}
@@ -233,5 +272,15 @@ HTML;
 <strong>Downloads</strong>
 <p>{$downloads}</p>
 EOD;
+	}
+
+	private function ellipsisTitle($text) {
+		$length = 100;
+
+		if (strlen($text) > $length) {
+			$text = explode('<br>', wordwrap($text, $length, '<br>'));
+			return $text[0] . '...';
+		}
+		return $text;
 	}
 }
