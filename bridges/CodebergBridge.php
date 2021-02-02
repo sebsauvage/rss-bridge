@@ -233,9 +233,18 @@ class CodebergBridge extends BridgeAbstract {
 				$item['title'] = $li->find('h3', 0)->plaintext;
 				$item['uri'] = $li->find('h3', 0)->find('a', 0)->href;
 
-				$item['content'] = $li->find('div.markdown', 0);
-				$item['content'] .= $this->extractDownloads($li->find('div.download', 0));
+				$tag = $li->find('span.tag', 0)->find('a', 0);
+				$commit = $li->find('span.commit', 0);
+				$downloads = $this->extractDownloads($li->find('div.download', 0));
 
+				$item['content'] = $li->find('div.markdown', 0);
+				$item['content'] .= <<<HTML
+<strong>Tag</strong>
+<p>{$tag}</p>
+<strong>Commit</strong>
+<p>{$commit}</p>
+{$downloads}
+HTML;
 				$item['timestamp'] = $li->find('span.time', 0)->find('span', 0)->title;
 				$item['author'] = $li->find('span.author', 0)->find('a', 0)->plaintext;
 			}
