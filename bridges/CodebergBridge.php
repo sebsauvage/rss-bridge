@@ -25,11 +25,17 @@ class CodebergBridge extends BridgeAbstract {
 		'Pull Requests' => array(),
 		'Releases' => array(),
 		'global' => array(
+			'username' => array(
+				'name' => 'Username',
+				'type' => 'text',
+				'exampleValue' => 'username',
+				'title' => 'Username of account that the repository belongs to.',
+				'required' => true,
+			),
 			'repo' => array(
 				'name' => 'Repository',
 				'type' => 'text',
-				'exampleValue' => 'username/repo',
-				'title' => 'username and repository from URL. codeberg.org/username/repo e.g: codeberg.org/Codeberg/Design',
+				'exampleValue' => 'repo',
 				'required' => true,
 			)
 		)
@@ -71,18 +77,18 @@ class CodebergBridge extends BridgeAbstract {
 		switch($this->queriedContext) {
 			case 'Commits':
 				if ($this->getBranch() === $this->defaultBranch) {
-					return $this->getInput('repo') . ' Commits';
+					return $this->getRepo() . ' Commits';
 				}
 
-				return $this->getInput('repo') . ' Commits (' . $this->getBranch() . ' branch) - ' . self::NAME;
+				return $this->getRepo() . ' Commits (' . $this->getBranch() . ' branch) - ' . self::NAME;
 			case 'Issues':
-				return $this->getInput('repo') . ' Issues - ' . self::NAME;
+				return $this->getRepo() . ' Issues - ' . self::NAME;
 			case 'Issue Comments':
 				return $this->issueTitle . ' - Issue Comments - ' . self::NAME;
 			case 'Pull Requests':
-				return $this->getInput('repo') . ' Pull Requests - ' . self::NAME;
+				return $this->getRepo() . ' Pull Requests - ' . self::NAME;
 			case 'Releases':
-				return $this->getInput('repo') . ' Releases - ' . self::NAME;
+				return $this->getRepo() . ' Releases - ' . self::NAME;
 			default:
 				return parent::getName();
 		}
@@ -91,15 +97,15 @@ class CodebergBridge extends BridgeAbstract {
 	public function getURI() {
 		switch($this->queriedContext) {
 			case 'Commits':
-				return self::URI . $this->getInput('repo') . '/commits/branch/' . $this->getBranch();
+				return self::URI . $this->getRepo() . '/commits/branch/' . $this->getBranch();
 			case 'Issues':
-				return self::URI . $this->getInput('repo') . '/issues/';
+				return self::URI . $this->getRepo() . '/issues/';
 			case 'Issue Comments':
-				return self::URI . $this->getInput('repo') . '/issues/' . $this->getInput('issueId');
+				return self::URI . $this->getRepo() . '/issues/' . $this->getInput('issueId');
 			case 'Pull Requests':
-				return self::URI . $this->getInput('repo') . '/pulls';
+				return self::URI . $this->getRepo() . '/pulls';
 			case 'Releases':
-				return self::URI . $this->getInput('repo') . '/releases';
+				return self::URI . $this->getRepo() . '/releases';
 			default:
 				return parent::getURI();
 		}
@@ -111,6 +117,10 @@ class CodebergBridge extends BridgeAbstract {
 		}
 
 		return $this->defaultBranch;
+	}
+	
+	private function getRepo() {
+		return $this->getInput('username') . '/' . $this->getInput('repo');
 	}
 
 	private function extractCommits($html) {
