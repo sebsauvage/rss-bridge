@@ -107,7 +107,7 @@ class CodebergBridge extends BridgeAbstract {
 
 		return null;
 	}
-	
+
 	public function collectData() {
 		$html = getSimpleHTMLDOM($this->getURI())
 			or returnServerError('Could not request: ' . $this->getURI());
@@ -180,7 +180,7 @@ class CodebergBridge extends BridgeAbstract {
 
 		return $this->defaultBranch;
 	}
-	
+
 	private function getRepo() {
 		return $this->getInput('username') . '/' . $this->getInput('repo');
 	}
@@ -241,7 +241,7 @@ class CodebergBridge extends BridgeAbstract {
 	}
 
 	private function extractIssueComments($html) {
-		$this->issueTitle = $html->find('span#issue-title', 0)->plaintext 
+		$this->issueTitle = $html->find('span#issue-title', 0)->plaintext
 			. ' (' . $html->find('span.index', 0)->plaintext . ')';
 
 		foreach ($html->find('ui.timeline > div.timeline-item.comment') as $div) {
