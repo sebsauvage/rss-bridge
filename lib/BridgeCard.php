@@ -32,7 +32,7 @@ final class BridgeCard {
 		foreach($formats as $name) {
 			$buttons .= '<button type="submit" name="format" value="'
 			. $name
-			. '">'
+			. '" formtarget="_blank">'
 			. $name
 			. '</button>'
 			. PHP_EOL;
