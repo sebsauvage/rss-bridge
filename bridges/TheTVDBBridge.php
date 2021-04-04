@@ -4,7 +4,7 @@ class TheTVDBBridge extends BridgeAbstract {
 
 	const MAINTAINER = 'Astyan';
 	const NAME = 'TheTVDB';
-	const URI = 'http://thetvdb.com/';
+	const URI = 'https://thetvdb.com/';
 	const APIURI = 'https://api.thetvdb.com/';
 	const CACHE_TIMEOUT = 43200; // 12h
 	const DESCRIPTION = 'Returns latest episodes of a serie with theTVDB api. You can contribute to theTVDB.';
@@ -26,6 +26,8 @@ class TheTVDBBridge extends BridgeAbstract {
 	const APIACCOUNT = 'RSSBridge';
 	const APIKEY = '76DE1887EA401C9A';
 	const APIUSERKEY = 'B52869AC6005330F';
+
+	private $feedName = '';
 
 	private function getApiUri(){
 		return self::APIURI;
@@ -159,7 +161,15 @@ class TheTVDBBridge extends BridgeAbstract {
 	}
 
 	public function getIcon() {
-		return self::URI . 'application/themes/thetvdb/images/logo.png';
+		return 'https://artworks.thetvdb.com/icon.png';
+	}
+
+	public function getName() {
+		if (!empty($this->feedName)) {
+			return $this->feedName . ' - TheTVDB';
+		}
+
+		return parent::getName();
 	}
 
 	public function collectData(){
@@ -170,6 +180,9 @@ class TheTVDBBridge extends BridgeAbstract {
 		$maxseason = $this->getLatestSeasonNumber($token, $serie_id);
 		$seriename = $this->getSerieName($token, $serie_id);
 		$season = $maxseason;
+
+		$this->feedName = $seriename;
+
 		while(sizeof($episodelist) < $nbepisode && $season >= 1) {
 			$nbepisodetmp = $nbepisode - sizeof($episodelist);
 			$this->getSeasonEpisodes(
