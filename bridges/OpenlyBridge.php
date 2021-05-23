@@ -77,7 +77,7 @@ class OpenlyBridge extends BridgeAbstract {
 
 			$this->items[] = $item;
 
-			if (count($this->items) >= 1) {
+			if (count($this->items) >= 10) {
 				break;
 			}
 		}
