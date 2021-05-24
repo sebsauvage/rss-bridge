@@ -61,7 +61,7 @@ class OpenlyBridge extends BridgeAbstract {
 	const ARTICLE_CACHE_TIMEOUT = 3600; // 1 hour
 
 	private $feedTitle = '';
-	private $itemLimit = 1;
+	private $itemLimit = 10;
 
 	private $profileRegexUrl = '/openlynews\.com\/profile\/\?id=([a-zA-Z0-9]+)/';
 
@@ -76,7 +76,7 @@ class OpenlyBridge extends BridgeAbstract {
 
 		return null;
 	}
-	
+
 	public function collectData() {
 
 		if ($this->queriedContext === 'By Author') { // Get profile page
@@ -88,7 +88,7 @@ class OpenlyBridge extends BridgeAbstract {
 			if ($html->find('h1', 0)) {
 				$this->feedTitle = $html->find('h1', 0)->plaintext;
 			}
-	
+
 		} else { // Get ajax page
 			$html = getSimpleHTMLDOM($this->getAjaxURI())
 				or returnServerError('Could not request: ' . $this->getAjaxURI());
@@ -217,5 +217,5 @@ class OpenlyBridge extends BridgeAbstract {
 		}
 
 		return $item;
-	}	
+	}
 }
