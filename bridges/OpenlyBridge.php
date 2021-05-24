@@ -44,7 +44,20 @@ class OpenlyBridge extends BridgeAbstract {
 
 	private $feedTitle = '';
 	private $itemLimit = 10;
+	private $profileRegexUrl = '/openlynews\.com\/profile\/\?id=([a-zA-Z0-9]+)/';
 
+	public function detectParameters($url) {
+		$params = array();
+
+		if(preg_match($this->profileRegexUrl, $url, $matches) > 0) {
+			$params['context'] = 'By Author';
+			$params['profileId'] = $matches[1];
+			return $params;
+		}
+
+		return null;
+	}
+	
 	public function collectData() {
 
 		if ($this->queriedContext === 'By Author') { // Get profile page
