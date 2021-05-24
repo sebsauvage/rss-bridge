@@ -64,6 +64,7 @@ class OpenlyBridge extends BridgeAbstract {
 	private $itemLimit = 10;
 
 	private $profileRegexUrl = '/openlynews\.com\/profile\/\?id=([a-zA-Z0-9]+)/';
+	private $tagRegexUrl = '/openlynews\.com\/([a-z]+)\/\?(?:page=(?:[0-9]+)&)?theme=([\w-]+)/';
 
 	public function detectParameters($url) {
 		$params = array();
@@ -71,6 +72,13 @@ class OpenlyBridge extends BridgeAbstract {
 		if(preg_match($this->profileRegexUrl, $url, $matches) > 0) {
 			$params['context'] = 'By Author';
 			$params['profileId'] = $matches[1];
+			return $params;
+		}
+
+		if(preg_match($this->tagRegexUrl, $url, $matches) > 0) {
+			$params['context'] = 'By Tag';
+			$params['content'] = $matches[1];
+			$params['tag'] = $matches[2];
 			return $params;
 		}
 
