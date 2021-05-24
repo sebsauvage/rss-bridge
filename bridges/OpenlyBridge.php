@@ -29,55 +29,50 @@ class OpenlyBridge extends BridgeAbstract {
 				'exampleValue' => 'lgbt-law',
 			)
 		),
-		/*'Author' => array(
+		'By Author' => array(
 			'profileId' => array(
 				'name' => 'Profile ID',
 				'type' => 'text',
+				'required' => true,
+				'exampleValue' => '003D000002WZGYRIA5',
 			)
-		)*/
+		)
 	);
 
 	const CACHE_TIMEOUT = 900; // 15 mins
+	const ARTICLE_CACHE_TIMEOUT = 3600; // 1 hour
 
 	private $feedTitle = '';
+	private $itemLimit = 10;
 
 	public function collectData() {
-		$html = getSimpleHTMLDOM($this->getAjaxURI())
-			or returnServerError('Could not request: ' . $this->getAjaxURI());
 
-		$html = defaultLinkTo($html, $this->getURI());
-
-		if ($html->find('h2.title-v4', 0)) {
-			$html->find('span.tooltiptext', 0)->innertext = '';
-			$this->feedTitle = $html->find('a.tooltipitem', 0)->plaintext;
-		}
-
-		foreach($html->find('div.item') as $div) {
-			$article = getSimpleHTMLDOMCached($div->find('a', 0)->href, 3600)
-				or returnServerError('Could not request: ' . $div->find('a', 0)->href);
+		if ($this->queriedContext === 'By Author') { // Get profile page
+			$html = getSimpleHTMLDOM($this->getURI())
+				or returnServerError('Could not request: ' . $this->getURI());
 
 			$html = defaultLinkTo($html, $this->getURI());
 
-			$article->find('span.lead-text', 0)->outertext = '';
-
-			$item = array();
-			$item['title'] = $div->find('h3', 0)->plaintext;
-			$item['uri'] = $div->find('a', 0)->href;
-			$item['content'] = $article->find('div.body-text', 0);
-			$item['enclosures'][] = $article->find('meta[name="twitter:image"]', 0)->content;
-			$item['timestamp'] = $article->find('div.meta.small', 0)->plaintext;
-
-			if ($article->find('div.meta a', 0)) {
-				$item['author'] = $article->find('div.meta a', 0)->plaintext;
+			if ($html->find('h1', 0)) {
+				$this->feedTitle = $html->find('h1', 0)->plaintext;
 			}
+	
+		} else { // Get ajax page
+			$html = getSimpleHTMLDOM($this->getAjaxURI())
+				or returnServerError('Could not request: ' . $this->getAjaxURI());
 
-			foreach($article->find('div.themes li') as $li) {
-				$item['categories'][] = $li->plaintext;
+			$html = defaultLinkTo($html, $this->getURI());
+
+			if ($html->find('h2.title-v4', 0)) {
+				$html->find('span.tooltiptext', 0)->innertext = '';
+				$this->feedTitle = $html->find('a.tooltipitem', 0)->plaintext;
 			}
+		}
 
-			$this->items[] = $item;
+		foreach($html->find('div.item') as $div) {
+			$this->items[] = $this->getArticle($div->find('a', 0)->href);
 
-			if (count($this->items) >= 10) {
+			if (count($this->items) >= $this->itemLimit) {
 				break;
 			}
 		}
@@ -96,6 +91,9 @@ class OpenlyBridge extends BridgeAbstract {
 			case 'By Region':
 				return self::URI . 'news/?region=' . $this->getInput('region');
 				break;
+			case 'By Author':
+				return self::URI . 'profile/?id=' . $this->getInput('profileId');
+				break;
 			default:
 				return parent::getURI();
 		}
@@ -103,10 +101,10 @@ class OpenlyBridge extends BridgeAbstract {
 
 	public function getName() {
 		switch ($this->queriedContext) {
-			case 'by News':
+			case 'All News':
 				return 'News - Openly';
 				break;
-			case 'By Opinion':
+			case 'All Opinion':
 				return 'Opinion - Openly';
 				break;
 			case 'by Tag':
@@ -122,6 +120,13 @@ class OpenlyBridge extends BridgeAbstract {
 				}
 
 				return $this->getInput('region') . ' - Openly';
+				break;
+			case 'By Author':
+				if ($this->feedTitle) {
+					return $this->feedTitle . ' - Author - Openly';
+				}
+
+				return $this->getInput('profileId') . ' - Author - Openly';
 				break;
 			default:
 				return parent::getName();
@@ -146,4 +151,30 @@ class OpenlyBridge extends BridgeAbstract {
 				break;
 		}
 	}
+
+	private function getArticle($url) {
+		$article = getSimpleHTMLDOMCached($url, self::ARTICLE_CACHE_TIMEOUT)
+			or returnServerError('Could not request: ' . $url);
+
+		$article = defaultLinkTo($article, $this->getURI());
+
+		$article->find('span.lead-text', 0)->outertext = ''; // Remove lead text
+
+		$item = array();
+		$item['title'] = $article->find('h1', 0)->plaintext;
+		$item['uri'] = $url;
+		$item['content'] = $article->find('div.body-text', 0);
+		$item['enclosures'][] = $article->find('meta[name="twitter:image"]', 0)->content;
+		$item['timestamp'] = $article->find('div.meta.small', 0)->plaintext;
+
+		if ($article->find('div.meta a', 0)) {
+			$item['author'] = $article->find('div.meta a', 0)->plaintext;
+		}
+
+		foreach($article->find('div.themes li') as $li) {
+			$item['categories'][] = $li->plaintext;
+		}
+
+		return $item;
+	}	
 }
