@@ -147,7 +147,7 @@ class OpenlyBridge extends BridgeAbstract {
 			case 'All Opinion':
 				return 'Opinion - Openly';
 				break;
-			case 'by Tag':
+			case 'By Tag':
 				if (empty($this->feedTitle)) {
 					$this->feedTitle = $this->getInput('tag');
 				}
@@ -169,13 +169,12 @@ class OpenlyBridge extends BridgeAbstract {
 
 				return $this->feedTitle . ' - Openly';
 				break;
-				break;
 			case 'By Author':
-				if ($this->feedTitle) {
-					return $this->feedTitle . ' - Author - Openly';
+				if (empty($this->feedTitle)) {
+					$this->feedTitle = $this->getInput('profileId');
 				}
 
-				return $this->getInput('profileId') . ' - Author - Openly';
+				return $this->feedTitle . ' - Author - Openly';
 				break;
 			default:
 				return parent::getName();
