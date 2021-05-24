@@ -19,6 +19,15 @@ class OpenlyBridge extends BridgeAbstract {
 					'Middle Easta' => 'middle-east',
 					'North America' => 'north-america'
 				)
+			),
+			'content' => array(
+				'name' => 'Content',
+				'type' => 'list',
+				'values' => array(
+					'News' => 'news',
+					'Opinion' => 'people'
+				),
+				'defaultValue' => 'news'
 			)
 		),
 		'By Tag' => array(
@@ -27,6 +36,15 @@ class OpenlyBridge extends BridgeAbstract {
 				'type' => 'text',
 				'required' => true,
 				'exampleValue' => 'lgbt-law',
+			),
+			'content' => array(
+				'name' => 'Content',
+				'type' => 'list',
+				'values' => array(
+					'News' => 'news',
+					'Opinion' => 'people'
+				),
+				'defaultValue' => 'news'
 			)
 		),
 		'By Author' => array(
@@ -43,7 +61,8 @@ class OpenlyBridge extends BridgeAbstract {
 	const ARTICLE_CACHE_TIMEOUT = 3600; // 1 hour
 
 	private $feedTitle = '';
-	private $itemLimit = 10;
+	private $itemLimit = 1;
+
 	private $profileRegexUrl = '/openlynews\.com\/profile\/\?id=([a-zA-Z0-9]+)/';
 
 	public function detectParameters($url) {
@@ -100,9 +119,9 @@ class OpenlyBridge extends BridgeAbstract {
 				return self::URI . 'people';
 				break;
 			case 'By Tag':
-				return self::URI . 'news/?theme=' . $this->getInput('tag');
+				return self::URI . $this->getInput('content') . '/?theme=' . $this->getInput('tag');
 			case 'By Region':
-				return self::URI . 'news/?region=' . $this->getInput('region');
+				return self::URI . $this->getInput('content') . '/?region=' . $this->getInput('region');
 				break;
 			case 'By Author':
 				return self::URI . 'profile/?id=' . $this->getInput('profileId');
@@ -121,18 +140,27 @@ class OpenlyBridge extends BridgeAbstract {
 				return 'Opinion - Openly';
 				break;
 			case 'by Tag':
-				if ($this->feedTitle) {
-					return $this->feedTitle . ' - Openly';
+				if (empty($this->feedTitle)) {
+					$this->feedTitle = $this->getInput('tag');
 				}
 
-				return $this->getInput('tag') . ' - Openly';
+				if ($this->getInput('content') === 'people') {
+					return $this->feedTitle . ' - Opinion - Openly';
+				}
+
+				return $this->feedTitle . ' - Openly';
 				break;
 			case 'By Region':
-				if ($this->feedTitle) {
-					return $this->feedTitle . ' - Openly';
+				if (empty($this->feedTitle)) {
+					$this->feedTitle = $this->getInput('region');
 				}
 
-				return $this->getInput('region') . ' - Openly';
+				if ($this->getInput('content') === 'people') {
+					return $this->feedTitle . ' - Opinion - Openly';
+				}
+
+				return $this->feedTitle . ' - Openly';
+				break;
 				break;
 			case 'By Author':
 				if ($this->feedTitle) {
@@ -147,7 +175,7 @@ class OpenlyBridge extends BridgeAbstract {
 	}
 
 	private function getAjaxURI() {
-		$part = '/ajax.html?page=1';
+		$part = '/ajax.html?';
 
 		switch ($this->queriedContext) {
 			case 'All News':
@@ -157,10 +185,10 @@ class OpenlyBridge extends BridgeAbstract {
 				return self::URI . 'people' . $part;
 				break;
 			case 'By Tag':
-				return self::URI . 'news' . $part . '&theme=' . $this->getInput('tag');
+				return self::URI . $this->getInput('content') . $part . 'theme=' . $this->getInput('tag');
 				break;
 			case 'By Region':
-				return self::URI . 'news' . $part . '&region=' . $this->getInput('region');
+				return self::URI . $this->getInput('content') . $part . 'region=' . $this->getInput('region');
 				break;
 		}
 	}
