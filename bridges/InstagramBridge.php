@@ -269,4 +269,18 @@ class InstagramBridge extends BridgeAbstract {
 		}
 		return parent::getURI();
 	}
+
+	public function detectParameters($url){
+		$params = array();
+
+		// By username
+		$regex = '/^(https?:\/\/)?(www\.)?instagram\.com\/([^\/?\n]+)/';
+
+		if(preg_match($regex, $url, $matches) > 0) {
+			$params['u'] = urldecode($matches[3]);
+			return $params;
+		}
+
+		return null;
+	}
 }
