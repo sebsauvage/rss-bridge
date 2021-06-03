@@ -23,9 +23,9 @@ class TheTVDBBridge extends BridgeAbstract {
 			),
 		)
 	);
-	const APIACCOUNT = 'RSSBridge';
-	const APIKEY = '76DE1887EA401C9A';
-	const APIUSERKEY = 'B52869AC6005330F';
+	const APIACCOUNT = 'verifiedjoseph';
+	const APIKEY = 'e709c8cfc25fbadba52293d823c09eec';
+	const APIUSERKEY = '5E662CE1D195B7.01384407';
 
 	private function getApiUri(){
 		return self::APIURI;
