@@ -32,7 +32,7 @@ class TheCodingLoveBridge extends BridgeAbstract {
 			$author = $temp->find('span', 0);
 			$item['author'] = $author->innertext;
 
-			$item['content'] .= trim($content);
+			$item['content'] = trim($content);
 			$item['uri'] = $url;
 			$item['title'] = trim($title);
 
