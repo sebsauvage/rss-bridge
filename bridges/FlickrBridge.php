@@ -51,6 +51,15 @@ class FlickrBridge extends BridgeAbstract {
 				'title' => 'Insert username (as shown in the address bar)',
 				'exampleValue' => 'flickr'
 			),
+			'content' => array(
+				'name' => 'Content',
+				'type' => 'list',
+				'values' => array(
+					'Uploads' => 'uploads',
+					'Favorites' => 'faves',
+				),
+				'defaultValue' => 'uploads',
+			),
 			'media' => array(
 				'name' => 'Media',
 				'type' => 'list',
@@ -159,8 +168,14 @@ class FlickrBridge extends BridgeAbstract {
 					. '&sort=' . $this->getInput('sort') . '&media=' . $this->getInput('media');
 				break;
 			case 'By username':
-				return self::URI . 'search/?user_id=' . urlencode($this->getInput('u'))
-					. '&sort=' . $this->getInput('sort') . '&media=' . $this->getInput('media');
+				$uri = self::URI . 'search/?user_id=' . urlencode($this->getInput('u'))
+					. '&sort=date-posted-desc&media=' . $this->getInput('media');
+
+				if ($this->getInput('content') === 'faves') {
+					return $uri . '&faves=1';
+				}
+
+				return $uri;
 				break;
 
 			default:
@@ -178,6 +193,11 @@ class FlickrBridge extends BridgeAbstract {
 				return $this->getInput('q') . ' - keyword - ' . self::NAME;
 				break;
 			case 'By username':
+
+				if ($this->getInput('content') === 'faves') {
+					return $this->username . ' - favorites - ' . self::NAME;
+				}
+
 				return $this->username . ' - ' . self::NAME;
 				break;
 
