@@ -86,3 +86,7 @@ define('MAX_FILE_SIZE', 10000000); /* Allow larger files for simple_html_dom */
 require_once PATH_LIB_VENDOR . 'parsedown/Parsedown.php';
 require_once PATH_LIB_VENDOR . 'php-urljoin/src/urljoin.php';
 require_once PATH_LIB_VENDOR . 'simplehtmldom/simple_html_dom.php';
+require_once PATH_LIB_VENDOR . 'didom/load.php';
+require_once PATH_LIB_VENDOR . 'vk-posts/extractor-parser/Extractor.php';
+require_once PATH_LIB_VENDOR . 'vk-posts/formatter-html5/Formatter.php';
+require_once PATH_LIB_VENDOR . 'vk-posts/title-generator/TitleGenerator.php';
