@@ -20,6 +20,11 @@ class GitHubPullRequestBridge extends GithubIssueBridge {
 			'c' => array(
 				'name' => 'Show Pull Request Comments',
 				'type' => 'checkbox'
+			),
+			'q' => array(
+				'name' => 'Search Query',
+				'defaultValue' => '?q=is%3Apr+sort%3Aupdated-desc',
+				'required' => false
 			)
 		),
 		'Pull Request comments' => array(
@@ -34,5 +39,4 @@ class GitHubPullRequestBridge extends GithubIssueBridge {
 	const BRIDGE_OPTIONS = array(0 => 'Project Pull Requests', 1 => 'Pull Request comments');
 	const URL_PATH = 'pull';
 	const SEARCH_QUERY_PATH = 'pulls';
-	const SEARCH_QUERY = '?q=is%3Apr+sort%3Aupdated-desc';
 }

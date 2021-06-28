@@ -22,6 +22,11 @@ class GithubIssueBridge extends BridgeAbstract {
 			'c' => array(
 				'name' => 'Show Issues Comments',
 				'type' => 'checkbox'
+			),
+			'q' => array(
+				'name' => 'Search Query',
+				'defaultValue' => '?q=is%3Aissue+sort%3Aupdated-desc',
+				'required' => false
 			)
 		),
 		'Issue comments' => array(
@@ -37,7 +42,6 @@ class GithubIssueBridge extends BridgeAbstract {
 	const BRIDGE_OPTIONS = array(0 => 'Project Issues', 1 => 'Issue comments');
 	const URL_PATH = 'issues';
 	const SEARCH_QUERY_PATH = 'issues';
-	const SEARCH_QUERY = '?q=is%3Aissue+sort%3Aupdated-desc';
 
 	public function getName(){
 		$name = $this->getInput('u') . '/' . $this->getInput('p');
@@ -64,7 +68,7 @@ class GithubIssueBridge extends BridgeAbstract {
 			if($this->queriedContext === static::BRIDGE_OPTIONS[1]) {
 				$uri .= static::URL_PATH . '/' . $this->getInput('i');
 			} else {
-				$uri .= static::SEARCH_QUERY_PATH . static::SEARCH_QUERY;
+				$uri .= static::SEARCH_QUERY_PATH . $this->getInput('q');
 			}
 			return $uri;
 		}
