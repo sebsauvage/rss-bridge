@@ -34,5 +34,5 @@ class GitHubPullRequestBridge extends GithubIssueBridge {
 	const BRIDGE_OPTIONS = array(0 => 'Project Pull Requests', 1 => 'Pull Request comments');
 	const URL_PATH = 'pull';
 	const SEARCH_QUERY_PATH = 'pulls';
-	const SEARCH_QUERY = '?q=is%3Apr+sort%3Aupdated-desc';
+	const SEARCH_QUERY = '?q=is%3Apr+sort%3Acreated-desc';
 }
