@@ -383,3 +383,55 @@ h5 {
 	}
 
 }
+
+/* Dark theme */
+@media (prefers-color-scheme: dark){
+	* {
+		scrollbar-color: #202324 #454a4d;
+	}
+
+	body {
+		background-color: #202325;
+		color: #e8e6e3;
+	}
+
+	a, a:link, a:visited {
+		color: #0A6AB6;
+	}
+
+	/* Header */
+	select,
+	input[type="text"],
+	input[type="number"] {
+		background-color: #181A1B;
+		/* does not apply to placeholder text without !important */
+		color: white !important;
+
+		border: 1px solid #393E40;
+	}
+
+	/* Section */
+	section {
+		background-color: #181A1B;
+	}
+
+	/* Buttons */
+	button {
+		background: #0A6AB6 none repeat scroll 0% 0%;
+	}
+
+	button:hover {
+		background: #004daa;
+	}
+
+	@supports (display: grid){
+		.parameters input[type="number"] {
+			color: #BAB4AB;
+		}
+	}
+
+	/* Show more / less */
+	.showmore:hover, .showless:hover {
+		color: #d8d3cb;
+	}
+}

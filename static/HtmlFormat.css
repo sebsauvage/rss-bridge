@@ -120,3 +120,26 @@ html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockq
 	}
 
 }
+
+/* Dark theme, will automatically be set for those that have dark mode on their OS. */
+@media (prefers-color-scheme: dark){
+
+	* {
+		scrollbar-color: #202324 #454a4d;
+	}
+
+	body {
+		background-color: #202325;
+		color: #e8e6e3;
+	}
+
+	a, a:link, a:visited {
+		color: #0A6AB6;
+	}
+
+	/* Section */
+	section {
+		background-color: #181A1B;
+	}
+
+}
