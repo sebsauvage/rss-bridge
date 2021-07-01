@@ -35,3 +35,5 @@ RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
 	&& sed -ri -e 's/(CipherString\s*=\s*DEFAULT)@SECLEVEL=2/\1/' /etc/ssl/openssl.cnf
 
 COPY --chown=www-data:www-data ./ /app/
+
+CMD ["/app/docker-entrypoint.sh"]
