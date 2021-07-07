@@ -123,7 +123,7 @@ class InstagramBridge extends BridgeAbstract {
 				$item['title'] = substr($item['title'], 0, $titleLinePos) . '...';
 			}
 
-			if($directLink) {
+			if(true) {
 				$mediaURI = $media->display_url;
 			} else {
 				$mediaURI = self::URI . 'p/' . $media->shortcode . '/media?size=l';
