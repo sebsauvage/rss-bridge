@@ -117,7 +117,12 @@ abstract class BridgeAbstract implements BridgeInterface {
 
 	/** {@inheritdoc} */
 	public function getItems(){
-		return $this->items;
+		$limit = $this->getInput('limit') ?: -1;
+		if($limit > 0 && count($this->items) > $limit) {
+			return array_slice($this->items, 0, $limit);
+		} else {
+			return $this->items;
+		}
 	}
 
 	/**
