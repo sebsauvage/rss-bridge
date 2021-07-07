@@ -26,6 +26,9 @@ final class BridgeList {
 	 * @return string The document head
 	 */
 	private static function getHead() {
+
+		$google_analytics = GoogleAnalytics::buildGlobalSiteTag();
+
 		return <<<EOD
 <head>
 	<meta charset="utf-8">
@@ -43,6 +46,7 @@ final class BridgeList {
 			}
 		</style>
 	</noscript>
+	{$google_analytics}
 </head>
 EOD;
 	}

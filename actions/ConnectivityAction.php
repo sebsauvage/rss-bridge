@@ -101,7 +101,8 @@ class ConnectivityAction extends ActionAbstract {
 	}
 
 	private function returnEntryPage() {
-	echo <<<EOD
+		$google_analytics = GoogleAnalytics::buildGlobalSiteTag();
+		echo <<<EOD
 <!DOCTYPE html>
 
 <html>
@@ -114,6 +115,7 @@ class ConnectivityAction extends ActionAbstract {
 			crossorigin="anonymous">
 		<link rel="stylesheet" href="static/connectivity.css">
 		<script src="static/connectivity.js" type="text/javascript"></script>
+		{$google_analytics}
 	</head>
 	<body>
 		<div id="main-content" class="container">

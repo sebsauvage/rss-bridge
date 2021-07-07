@@ -107,6 +107,7 @@ EOD;
 		}
 
 		$charset = $this->getCharset();
+		$google_analytics = GoogleAnalytics::buildGlobalSiteTag();
 
 		/* Data are prepared, now let's begin the "MAGIE !!!" */
 		$toReturn = <<<EOD
@@ -120,6 +121,7 @@ EOD;
 	<link rel="icon" type="image/png" href="static/favicon.png">
 	{$links}
 	<meta name="robots" content="noindex, follow">
+	{$google_analytics}
 </head>
 <body>
 	<h1 class="pagetitle"><a href="{$uri}" target="_blank">{$title}</a></h1>

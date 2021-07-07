@@ -69,6 +69,7 @@ require_once PATH_LIB . 'FeedExpander.php';
 require_once PATH_LIB . 'CacheFactory.php';
 require_once PATH_LIB . 'Authentication.php';
 require_once PATH_LIB . 'Configuration.php';
+require_once PATH_LIB . 'GoogleAnalytics.php';
 require_once PATH_LIB . 'BridgeCard.php';
 require_once PATH_LIB . 'BridgeList.php';
 require_once PATH_LIB . 'ParameterValidator.php';
