@@ -16,14 +16,14 @@ class Rule34pahealBridge extends Shimmie2Bridge {
 		$item['id'] = (int)preg_replace('/[^0-9]/', '', $element->getAttribute(static::IDATTRIBUTE));
 		$item['timestamp'] = time();
 		$thumbnailUri = $element->find('a', 1)->href;
-		$item['tags'] = $element->getAttribute('data-tags');
+		$item['categories'] = explode(' ', $element->getAttribute('data-tags'));
 		$item['title'] = $this->getName() . ' | ' . $item['id'];
 		$item['content'] = '<a href="'
 		. $item['uri']
 		. '"><img src="'
 		. $thumbnailUri
 		. '" /></a><br>Tags: '
-		. $item['tags'];
+		. $element->getAttribute('data-tags');
 		return $item;
 	}
 }

@@ -44,14 +44,14 @@ class DanbooruBridge extends BridgeAbstract {
 		$item['postid'] = (int)preg_replace('/[^0-9]/', '', $element->getAttribute(static::IDATTRIBUTE));
 		$item['timestamp'] = time();
 		$thumbnailUri = $element->find('img', 0)->src;
-		$item['tags'] = $this->getTags($element);
+		$item['categories'] = array_filter(explode(' ', $this->getTags($element)));
 		$item['title'] = $this->getName() . ' | ' . $item['postid'];
 		$item['content'] = '<a href="'
 		. $item['uri']
 		. '"><img src="'
 		. $thumbnailUri
 		. '" /></a><br>Tags: '
-		. $item['tags'];
+		. $this->getTags($element);
 
 		return $item;
 	}
