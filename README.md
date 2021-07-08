@@ -85,7 +85,7 @@ Deploy
 Thanks to the community, hosting your own instance of RSS-Bridge is as easy as clicking a button!
 
 [![Deploy on Scalingo](https://cdn.scalingo.com/deploy/button.svg)](https://my.scalingo.com/deploy?source=https://github.com/sebsauvage/rss-bridge)
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/RSS-Bridge/rss-bridge/)
 
 Getting involved
 ===
