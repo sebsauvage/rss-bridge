@@ -43,8 +43,9 @@ class InstagramBridge extends BridgeAbstract {
 				'type' => 'checkbox',
 			)
 		)
-
 	);
+
+	const CSRF_TOKEN = '';
 
 	const USER_QUERY_HASH = '58b6785bea111c67129decbe6a448951';
 	const TAG_QUERY_HASH = '9b498c08113f1e09617a1703c22b2f32';
@@ -62,17 +63,19 @@ class InstagramBridge extends BridgeAbstract {
 		$key = $cache->loadData();
 
 		if($key == null) {
-				$data = getContents(self::URI . 'web/search/topsearch/?query=' . $username);
+			$headers = array();
+			if (CSRF_TOKEN != "") $headers[] = "X-CSRFToken: " . CSRF_TOKEN;
+			$data = getContents(self::URI . 'web/search/topsearch/?query=' . $username, $headers);
 
-				foreach(json_decode($data)->users as $user) {
-					if(strtolower($user->user->username) === strtolower($username)) {
-						$key = $user->user->pk;
-					}
+			foreach(json_decode($data)->users as $user) {
+				if(strtolower($user->user->username) === strtolower($username)) {
+					$key = $user->user->pk;
 				}
-				if($key == null) {
-					returnServerError('Unable to find username in search result.');
-				}
-				$cache->saveData($key);
+			}
+			if($key == null) {
+				returnServerError('Unable to find username in search result.');
+			}
+			$cache->saveData($key);
 		}
 		return $key;
 
@@ -204,17 +207,21 @@ class InstagramBridge extends BridgeAbstract {
 
 	protected function getSinglePostData($uri) {
 		$shortcode = explode('/', $uri)[4];
+		$headers = array();
+		if (CSRF_TOKEN != "") $headers[] = "X-CSRFToken: " . CSRF_TOKEN;
 		$data = getContents(self::URI .
 					'graphql/query/?query_hash=' .
 					self::SHORTCODE_QUERY_HASH .
 					'&variables={"shortcode"%3A"' .
 					$shortcode .
-					'"}');
+					'"}', $headers);
 
 		return json_decode($data)->data->shortcode_media;
 	}
 
 	protected function getInstagramJSON($uri) {
+		$headers = array();
+		if (CSRF_TOKEN != "") $headers[] = "X-CSRFToken: " . CSRF_TOKEN;
 
 		if(!is_null($this->getInput('u'))) {
 
@@ -225,7 +232,7 @@ class InstagramBridge extends BridgeAbstract {
 								 self::USER_QUERY_HASH .
 								 '&variables={"id"%3A"' .
 								$userId .
-								'"%2C"first"%3A10}');
+								'"%2C"first"%3A10}', $headers);
 			return json_decode($data);
 
 		} elseif(!is_null($this->getInput('h'))) {
@@ -234,12 +241,12 @@ class InstagramBridge extends BridgeAbstract {
 					 self::TAG_QUERY_HASH .
 					 '&variables={"tag_name"%3A"' .
 					$this->getInput('h') .
-					'"%2C"first"%3A10}');
+					'"%2C"first"%3A10}', $headers);
 			return json_decode($data);
 
 		} else {
 
-			$html = getContents($uri)
+			$html = getContents($uri, $headers)
 				or returnServerError('Could not request Instagram.');
 			$scriptRegex = '/window\._sharedData = (.*);<\/script>/';
 
