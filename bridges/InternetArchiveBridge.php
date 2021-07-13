@@ -34,6 +34,26 @@ class InternetArchiveBridge extends BridgeAbstract {
 		'item-ia account-ia'
 	);
 
+	private $detectParamsRegex = '/https?:\/\/archive\.org\/details\/@([\w]+)(?:\?tab=([a-z-]+))?/';
+
+	public function detectParameters($url) {
+		$params = array();
+
+		if(preg_match($this->detectParamsRegex, $url, $matches) > 0) {
+			$params['context'] = 'Account';
+			$params['username'] = $matches[1];
+			$params['content'] = 'uploads';
+
+			if (isset($matches[2])) {
+				$params['content'] = $matches[2];
+			}
+
+			return $params;
+		}
+
+		return null;
+	}
+
 	public function collectData() {
 
 		$html = getSimpleHTMLDOM($this->getURI())
