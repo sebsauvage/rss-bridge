@@ -148,7 +148,9 @@ class BridgeFactory extends FactoryAbstract {
 
 		if($firstCall) {
 
-			if(file_exists(WHITELIST)) {
+			if(getenv('RSSBRIDGE_WHITELIST')) {
+				$contents = str_replace(',', '\n', getenv('RSSBRIDGE_WHITELIST'));
+			} elseif(file_exists(WHITELIST)) {
 				$contents = trim(file_get_contents(WHITELIST));
 			} elseif(file_exists(WHITELIST_DEFAULT)) {
 				$contents = trim(file_get_contents(WHITELIST_DEFAULT));
@@ -159,7 +161,6 @@ class BridgeFactory extends FactoryAbstract {
 			if($contents === '*') { // Whitelist all bridges
 				$this->whitelist = $this->getBridgeNames();
 			} else {
-				//$this->$whitelist = array_map('$this->sanitizeBridgeName', explode("\n", $contents));
 				foreach(explode("\n", $contents) as $bridgeName) {
 					$this->whitelist[] = $this->sanitizeBridgeName($bridgeName);
 				}
