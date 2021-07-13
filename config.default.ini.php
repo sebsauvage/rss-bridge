@@ -51,6 +51,13 @@ name = "Hidden proxy name"
 ; false = disabled (default)
 by_bridge = false
 
+[bridges]
+; Whitelist all bridges from the config or by environment variable.
+; This will overwrite bridges configured in the whitelist.txt file!
+; false    = disabled (default)
+; true     = enabled
+whitelistall = false
+
 [authentication]
 
 ; Enables authentication for all requests to this RSS-Bridge instance.
