@@ -204,6 +204,7 @@ class FacebookBridge extends BridgeAbstract {
 			$item['author'] = $this->extractGroupPostAuthor($post);
 			$item['content'] = $this->extractGroupPostContent($post);
 			$item['enclosures'] = $this->extractGroupPostEnclosures($post);
+			$item['timestamp'] = $this->extractGroupPostTimestamp($post);
 
 			$this->items[] = $item;
 
@@ -333,6 +334,88 @@ class FacebookBridge extends BridgeAbstract {
 		}
 
 		return empty($enclosures) ? null : $enclosures;
+
+	}
+
+	/**
+	 * @param $j associative array json
+	 * @param $s name of key to look for
+	 * @return value of said key (int, string, or associative array)
+	 */
+	private function findInJson($j, $s) {
+
+		if (!is_array($j)) return null;
+
+		foreach ($j as $key => $value) {
+			if ($key === $s) return $value;
+			$answer = $this->findInJson($value, $s);
+			if ($answer) return $answer;
+		}
+
+		return null;
+
+	}
+
+	/**
+	 * @param $query string from uri
+	 * @return int of "publish_time"
+	 *
+	 * We search inside json, inside :-separated associative array inside html encoding inside a query
+	 * Don't bother splitting the :-separated associative array since FB can change this
+	 */
+	private function findFBPublishTime($query) {
+
+		foreach (explode('&', $query) as $chunk) {
+			foreach (explode('=', $chunk) as $html_param) {
+				if (strpos($html_param, "publish_time") == false) continue;
+				$fb_param = urldecode($html_param);
+				$start = strstr($fb_param, '{');
+				$length = strpos($fb_param, '}');
+				$json_str = substr($start, 0, $length);
+				if (!$json_str) continue;
+				$json = json_decode($json_str, true);
+				if (!$json) continue;
+				$publish_time = $this->findInJson($json, "publish_time");
+				if (is_int($publish_time)) return $publish_time;
+			}
+		}
+
+		return 0;
+
+        }
+
+	/**
+	 *  FB puts a publish time in the permalink.
+	 *
+	 *  a href permalink has html-encoded parameters like:
+	 *  /dustin.rudman.1?groupid=1676898132559396&amp;refid=18&amp;
+	 *
+	 *  that then becomes colon-separated attribute-value:
+	 *  qid.6971312569438366832:mf_story_key.2875792369336627
+	 *
+	 *  that has json page insights:
+	 *  page_insights.{"1676898132559396":...}
+	 *
+	 *  that has publish_time:12345
+	 *
+	 *
+	 *  We grab the permalink, and go looking.
+	 */
+	private function extractGroupPostTimestamp($post) {
+
+		$elements = $post->find('a')
+			or returnServerError('Unable to find URI!');
+
+		foreach($elements as $anchor) {
+
+			if(strpos($anchor->href, 'permalink') !== false) {
+				$arr = explode('?', $anchor->href, 2);
+				return $this->findFBPublishTime($arr[1]);
+			}
+
+		}
+
+		return 0;
 
 	}
 
