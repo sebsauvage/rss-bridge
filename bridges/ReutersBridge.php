@@ -38,6 +38,7 @@ class ReutersBridge extends BridgeAbstract
 					'Energy' => 'energy',
 					'Entertainment' => 'chan:8ym8q8dl',
 					'Environment' => 'chan:6u4f0jgs',
+					'Fact Check' => 'chan:abtpk0vm',
 					'Health' => 'chan:8hw7807a',
 					'Lifestyle' => 'life',
 					'Markets' => 'markets',
@@ -128,12 +129,14 @@ class ReutersBridge extends BridgeAbstract
 		$authorlist = $first['story']['authors'];
 		$category = $first['story']['channel']['name'];
 		$image_list = $first['story']['images'];
+		$published_at = $first['story']['published_at'];
 
 		$content_detail = array(
 			'content' => $this->handleArticleContent($article_content),
 			'author' => $this->handleAuthorName($authorlist),
 			'category' => $category,
 			'images' => $this->handleImage($image_list),
+			'published_at' => $published_at
 		);
 		return $content_detail;
 	}
@@ -144,7 +147,7 @@ class ReutersBridge extends BridgeAbstract
 		foreach($images as $image) { // Add more image to article.
 			$image_url = $image['url'];
 			$image_caption = $image['caption'];
-			$img = "<img src=\"$image_url\">";
+			$img = "<img src=\"$image_url\" alt=\"$image_caption\">";
 			$img_caption = "<figcaption style=\"text-align: center;\"><i>$image_caption</i></figcaption>";
 			$figure = "<figure>$img \t $img_caption</figure>";
 			$img_placeholder = $img_placeholder . $figure;
@@ -202,6 +205,51 @@ class ReutersBridge extends BridgeAbstract
 				case 'p_table':
 					$description = $description . $content['content'];
 					break;
+				case 'upstream_embed':
+					$media_type = $content['media_type'];
+					$cid = $content['cid'];
+					$embed = '';
+					switch ($media_type) {
+						case 'tweet':
+							$url = "https://platform.twitter.com/embed/Tweet.html?id=$cid";
+							$embed .= <<<EOD
+<iframe 
+	src="{$url}"
+	title="Twitter Tweet"
+	scrolling="no" 
+	frameborder="0" 
+	allowtransparency="true" 
+	allowfullscreen="true" 
+	style="width: 550px;height: 225px;"
+>
+</iframe>
+EOD;
+							break;
+						case 'instagram':
+							$url = "https://instagram.com/p/$cid/media/?size=l";
+							$embed .= <<<EOD
+<img 
+	src="{$url}"
+	alt="instagram-image-$cid"
+>
+EOD;
+							break;
+						case 'youtube':
+							$url = "https://www.youtube.com/embed/$cid";
+							$embed .= <<<EOD
+<‌iframe
+	width="560" 
+	height="315" 
+	src="{$url}"
+	frameborder="0" 
+	allowfullscreen
+>
+</iframe>
+EOD;
+							break;
+					}
+					$description .= $embed;
+					break;
 			}
 		}
 
@@ -253,7 +301,7 @@ class ReutersBridge extends BridgeAbstract
 			}
 
 			$item['title'] = $story['story']['hed'];
-			$item['timestamp'] = $story['story']['updated_at'];
+			$item['timestamp'] = $content_detail['published_at'];
 			$item['uri'] = $story['template_action']['url'];
 			$this->items[] = $item;
 		}
