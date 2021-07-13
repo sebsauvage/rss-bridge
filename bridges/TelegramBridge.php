@@ -107,7 +107,7 @@ class TelegramBridge extends BridgeAbstract {
 		}
 
 		if ($messageDiv->find('a.tgme_widget_message_reply', 0)) {
-			$message = $this->processReply($messageDiv);
+			$message .= $this->processReply($messageDiv);
 		}
 
 		if ($messageDiv->find('div.tgme_widget_message_sticker_wrap', 0)) {
@@ -137,11 +137,9 @@ class TelegramBridge extends BridgeAbstract {
 				$messageDiv->find('div.tgme_widget_message_text.js-message_text', 0)->plaintext
 			);
 		}
+
 		if ($messageDiv->find('div.tgme_widget_message_document', 0)) {
-			$message .= 'Attachments:';
-			foreach ($messageDiv->find('div.tgme_widget_message_document') as $attachments) {
-				$message .= $attachments->find('div.tgme_widget_message_document_title.accent_color', 0);
-			}
+			$message .= $this->processAttachment($messageDiv);
 		}
 
 		if ($messageDiv->find('a.tgme_widget_message_link_preview', 0)) {
@@ -152,31 +150,45 @@ class TelegramBridge extends BridgeAbstract {
 	}
 
 	private function processReply($messageDiv) {
-
 		$reply = $messageDiv->find('a.tgme_widget_message_reply', 0);
+		$author = $reply->find('span.tgme_widget_message_author_name', 0)->plaintext;
+		$text = '';
+
+		if ($reply->find('div.tgme_widget_message_metatext', 0)) {
+			$text = $reply->find('div.tgme_widget_message_metatext', 0)->innertext;
+		}
+
+		if ($reply->find('div.tgme_widget_message_text', 0)) {
+			$text = $reply->find('div.tgme_widget_message_text', 0)->innertext;
+		}
 
 		return <<<EOD
-<blockquote>{$reply->find('span.tgme_widget_message_author_name', 0)->plaintext}<br>
-{$reply->find('div.tgme_widget_message_text', 0)->innertext} 
+<blockquote>{$author}<br>
+{$text}
 <a href="{$reply->href}">{$reply->href}</a></blockquote><hr>
 EOD;
 	}
 
 	private function processSticker($messageDiv) {
-
 		if (empty($this->itemTitle)) {
 			$this->itemTitle = '@' . $this->processUsername() . ' posted a sticker';
 		}
 
 		$stickerDiv = $messageDiv->find('div.tgme_widget_message_sticker_wrap', 0);
 
-		preg_match($this->backgroundImageRegex, $stickerDiv->find('i', 0)->style, $sticker);
+		if ($stickerDiv->find('picture', 0)) {
+			$stickerDiv->find('picture', 0)->find('div', 0)->style = '';
+			$stickerDiv->find('picture', 0)->style = '';
 
-		$this->enclosures[] = $sticker[1];
+			return $stickerDiv;
 
-		return <<<EOD
-<a href="{$stickerDiv->children(0)->herf}"><img src="{$sticker[1]}"></a>
+		} elseif (preg_match($this->backgroundImageRegex, $stickerDiv->find('i', 0)->style, $sticker)) {
+			$this->enclosures[] = $sticker[1];
+
+			return <<<EOD
+				<a href="{$stickerDiv->children(0)->herf}"><img src="{$sticker[1]}"></a>
 EOD;
+		}
 	}
 
 	private function processPoll($messageDiv) {
@@ -302,6 +314,23 @@ EOD;
 {$messageDiv->find('span.message_media_view_in_telegram', 0)->innertext}<br><br>
 <img src="{$photo[1]}"/></a>
 EOD;
+	}
+
+	private function processAttachment($messageDiv) {
+		$attachments = 'Attachments:';
+
+		if (empty($this->itemTitle)) {
+			$this->itemTitle = '@' . $this->processUsername() . ' posted an attachment';
+		}
+
+		foreach ($messageDiv->find('div.tgme_widget_message_document') as $document) {
+			$attachments .= <<<EOD
+<br>{$document->find('div.tgme_widget_message_document_title', 0)->plaintext}<br>
+{$document->find('div.tgme_widget_message_document_extra', 0)->plaintext}
+EOD;
+		}
+
+		return $attachments;
 	}
 
 	private function processDate($messageDiv) {
