@@ -5,6 +5,7 @@ class InstagramBridge extends BridgeAbstract {
 	const NAME = 'Instagram Bridge';
 	const URI = 'https://www.instagram.com/';
 	const DESCRIPTION = 'Returns the newest images';
+	const CACHE_TIMEOUT = 900; // 15min
 
 	const PARAMETERS = array(
 		'Username' => array(
@@ -50,6 +51,38 @@ class InstagramBridge extends BridgeAbstract {
 	const TAG_QUERY_HASH = '9b498c08113f1e09617a1703c22b2f32';
 	const SHORTCODE_QUERY_HASH = '865589822932d1b43dfe312121dd353a';
 
+
+	const BIBLIOGRAM_ACCEPTED = false;
+	/* 	Video/image from Instagram now can't display due to SameOrigin policy.
+	*		This flag will allow to use Bibliogram to process image/video from Instagram
+	*		Value : {true|false}
+	*		Default: false
+	*/
+	const BIBLIOGRAM_URL = 'https://bibliogram.art/';
+	/* You can change to your perferred one.
+	*	List of instance: https://git.sr.ht/~cadence/bibliogram-docs/tree/master/docs/Instances.md
+	*/
+	const BIBLIOGRAM_IMAGE_PROXY = self::BIBLIOGRAM_URL . 'imageproxy?url=';
+	const BIBLIOGRAM_VIDEO_PROXY = self::BIBLIOGRAM_URL . 'videoproxy?url=';
+
+	protected function getImageURL($image_url) {
+		if(self::BIBLIOGRAM_ACCEPTED == true) {
+			$url = urlencode($image_url);
+			$proxy_url = self::BIBLIOGRAM_IMAGE_PROXY . $url;
+			return $proxy_url;
+		}
+		return $image_url;
+	}
+
+	protected function getVideoURL($video_url) {
+		if(self::BIBLIOGRAM_ACCEPTED == true) {
+			$url = urlencode($video_url);
+			$proxy_url = self::BIBLIOGRAM_VIDEO_PROXY . $url;
+			return $proxy_url;
+		}
+		return $video_url;
+	}
+
 	protected function getInstagramUserId($username) {
 
 		if(is_numeric($username)) return $username;
@@ -80,11 +113,17 @@ class InstagramBridge extends BridgeAbstract {
 
 	public function collectData(){
 		$directLink = !is_null($this->getInput('direct_links')) && $this->getInput('direct_links');
+		$query_type = '';
 
 		$data = $this->getInstagramJSON($this->getURI());
 
+		if($data == null) {
+			returnServerError('Unable to get data from Instagram');
+		}
+
 		if(!is_null($this->getInput('u'))) {
-			$userMedia = $data->data->user->edge_owner_to_timeline_media->edges;
+			// $userMedia = $data->data->user->edge_owner_to_timeline_media->edges;
+			$userMedia = $data->entry_data->ProfilePage[0]->graphql->user->edge_owner_to_timeline_media->edges;
 		} elseif(!is_null($this->getInput('h'))) {
 			$userMedia = $data->data->hashtag->edge_hashtag_to_media->edges;
 		} elseif(!is_null($this->getInput('l'))) {
@@ -124,34 +163,41 @@ class InstagramBridge extends BridgeAbstract {
 			}
 
 			if($directLink) {
-				$mediaURI = $media->display_url;
+				$mediaURI = $this->getImageURL($media->display_url);
 			} else {
 				$mediaURI = self::URI . 'p/' . $media->shortcode . '/media?size=l';
 			}
 
-			switch($media->__typename) {
-				case 'GraphSidecar':
-					$data = $this->getInstagramSidecarData($item['uri'], $item['title'], $media, $textContent);
-					$item['content'] = $data[0];
-					$item['enclosures'] = $data[1];
-					break;
-				case 'GraphImage':
-					$item['content'] = '<a href="' . htmlentities($item['uri']) . '" target="_blank">';
-					$item['content'] .= '<img src="' . htmlentities($mediaURI) . '" alt="' . $item['title'] . '" />';
-					$item['content'] .= '</a><br><br>' . nl2br(htmlentities($textContent));
-					$item['enclosures'] = array($mediaURI);
-					break;
-				case 'GraphVideo':
-					$data = $this->getInstagramVideoData($item['uri'], $mediaURI, $media, $textContent);
-					$item['content'] = $data[0];
-					if($directLink) {
+			if(isset($media->__typename)) {
+				switch($media->__typename) {
+					case 'GraphSidecar':
+						$data = $this->getInstagramSidecarData($item['uri'], $item['title'], $media, $textContent);
+						$item['content'] = $data[0];
 						$item['enclosures'] = $data[1];
-					} else {
+						break;
+					case 'GraphImage':
+						$item['content'] = '<a href="' . htmlentities($item['uri']) . '" target="_blank">';
+						$item['content'] .= '<img src="' . htmlentities($mediaURI) . '" alt="' . $item['title'] . '" />';
+						$item['content'] .= '</a><br><br>' . nl2br(htmlentities($textContent));
 						$item['enclosures'] = array($mediaURI);
-					}
-					$item['thumbnail'] = $mediaURI;
-					break;
-				default: break;
+						break;
+					case 'GraphVideo':
+						$data = $this->getInstagramVideoData($item['uri'], $mediaURI, $media, $textContent);
+						$item['content'] = $data[0];
+						if($directLink) {
+							$item['enclosures'] = $data[1];
+						} else {
+							$item['enclosures'] = array($mediaURI);
+						}
+						$item['thumbnail'] = $mediaURI;
+						break;
+					default: break;
+				}
+			} else {
+				$item['content'] = '<a href="' . htmlentities($item['uri']) . '" target="_blank">';
+				$item['content'] .= '<img src="' . htmlentities($mediaURI) . '" alt="' . $item['title'] . '" />';
+				$item['content'] .= '</a><br><br>' . nl2br(htmlentities($textContent));
+				$item['enclosures'] = array($mediaURI);
 			}
 			$item['timestamp'] = $media->taken_at_timestamp;
 
@@ -166,15 +212,17 @@ class InstagramBridge extends BridgeAbstract {
 		foreach($mediaInfo->edge_sidecar_to_children->edges as $singleMedia) {
 			$singleMedia = $singleMedia->node;
 			if($singleMedia->is_video) {
-				if(in_array($singleMedia->video_url, $enclosures)) continue; // check if not added yet
-				$content .= '<video controls><source src="' . $singleMedia->video_url . '" type="video/mp4"></video><br>';
-				array_push($enclosures, $singleMedia->video_url);
+				$video_proxy_url = $this->getVideoURL($singleMedia->video_url);
+				if(in_array($video_proxy_url, $enclosures)) continue; // check if not added yet
+				$content .= '<video controls><source src="' . $video_proxy_url . '" type="video/mp4"></video><br>';
+				array_push($enclosures, $video_proxy_url);
 			} else {
-				if(in_array($singleMedia->display_url, $enclosures)) continue; // check if not added yet
-				$content .= '<a href="' . $singleMedia->display_url . '" target="_blank">';
-				$content .= '<img src="' . $singleMedia->display_url . '" alt="' . $postTitle . '" />';
+				$image_proxy_url = $this->getImageURL($singleMedia->display_url);
+				if(in_array($image_proxy_url, $enclosures)) continue; // check if not added yet
+				$content .= '<a href="' . $image_proxy_url . '" target="_blank">';
+				$content .= '<img src="' . $image_proxy_url . '" alt="' . $postTitle . '" />';
 				$content .= '</a><br>';
-				array_push($enclosures, $singleMedia->display_url);
+				array_push($enclosures, $image_proxy_url);
 			}
 		}
 		$content .= '<br>' . nl2br(htmlentities($textContent));
@@ -184,13 +232,14 @@ class InstagramBridge extends BridgeAbstract {
 
 	// returns Video post's contents and enclosures
 	protected function getInstagramVideoData($uri, $mediaURI, $mediaInfo, $textContent) {
+		$video_proxy_url = $this->getVideoURL($mediaInfo->video_url);
 		$content = '<video controls>';
-		$content .= '<source src="' . $mediaInfo->video_url . '" poster="' . $mediaURI . '" type="video/mp4">';
+		$content .= '<source src="' . $video_proxy_url . '" poster="' . $mediaURI . '" type="video/mp4">';
 		$content .= '<img src="' . $mediaURI . '" alt="">';
 		$content .= '</video><br>';
 		$content .= '<br>' . nl2br(htmlentities($textContent));
 
-		return array($content, array($mediaInfo->video_url));
+		return array($content, array($video_proxy_url));
 	}
 
 	protected function getTextContent($media) {
@@ -216,30 +265,32 @@ class InstagramBridge extends BridgeAbstract {
 
 	protected function getInstagramJSON($uri) {
 
-		if(!is_null($this->getInput('u'))) {
+		// if(!is_null($this->getInput('u'))) {
 
-			$userId = $this->getInstagramUserId($this->getInput('u'));
+		// 	$userId = $this->getInstagramUserId($this->getInput('u'));
 
-			$data = getContents(self::URI .
-								'graphql/query/?query_hash=' .
-								 self::USER_QUERY_HASH .
-								 '&variables={"id"%3A"' .
-								$userId .
-								'"%2C"first"%3A10}');
-			return json_decode($data);
+		// 	$data = getContents(self::URI .
+		// 						'graphql/query/?query_hash=' .
+		// 						 self::USER_QUERY_HASH .
+		// 						 '&variables={"id"%3A"' .
+		// 						$userId .
+		// 						'"%2C"first"%3A10}');
+		// 	return json_decode($data);
 
-		} elseif(!is_null($this->getInput('h'))) {
+		// } else
+		if(!is_null($this->getInput('h'))) {
 			$data = getContents(self::URI .
 					'graphql/query/?query_hash=' .
 					 self::TAG_QUERY_HASH .
 					 '&variables={"tag_name"%3A"' .
 					$this->getInput('h') .
 					'"%2C"first"%3A10}');
+
 			return json_decode($data);
 
 		} else {
-
-			$html = getContents($uri)
+			$header = array('User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:83.0) Gecko/20100101 Firefox/83.0');
+			$html = getContents($uri, $header)
 				or returnServerError('Could not request Instagram.');
 			$scriptRegex = '/window\._sharedData = (.*);<\/script>/';
 
@@ -261,7 +312,7 @@ class InstagramBridge extends BridgeAbstract {
 
 	public function getURI(){
 		if(!is_null($this->getInput('u'))) {
-			return self::URI . urlencode($this->getInput('u')) . '/';
+			return self::URI . urlencode($this->getInput('u')) . '/feed';
 		} elseif(!is_null($this->getInput('h'))) {
 			return self::URI . 'explore/tags/' . urlencode($this->getInput('h'));
 		} elseif(!is_null($this->getInput('l'))) {
