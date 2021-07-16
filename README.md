@@ -261,6 +261,7 @@ https://gist.github.com/LogMANOriginal/da00cd1e5f0ca31cef8e193509b17fd8
 * [stjohnjohnson](https://github.com/stjohnjohnson)
 * [Strubbl](https://github.com/Strubbl)
 * [sublimz](https://github.com/sublimz)
+* [sudwebdesign](https://github.com/sudwebdesign)
 * [sunchaserinfo](https://github.com/sunchaserinfo)
 * [SuperSandro2000](https://github.com/SuperSandro2000)
 * [sysadminstory](https://github.com/sysadminstory)

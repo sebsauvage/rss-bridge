@@ -17,8 +17,13 @@ class ScmbBridge extends BridgeAbstract {
 			$item['uri'] = self::URI . $article->find('p.summary a', 0)->href;
 			$item['title'] = $article->find('header h1 a', 0)->innertext;
 
+			// remove img "anecdote-premium-blurry.jpg" from anecdote content
+			if($article->find('img.premium-needed', 0))
+				$article->find('img.premium-needed', 0)->outertext = '';
 			// remove text "En savoir plus" from anecdote content
-			$article->find('span.read-more', 0)->outertext = '';
+			elseif($article->find('span.read-more', 0))
+				$article->find('span.read-more', 0)->outertext = '';
+
 			$content = $article->find('p.summary a', 0)->innertext;
 
 			// remove superfluous spaces at the end

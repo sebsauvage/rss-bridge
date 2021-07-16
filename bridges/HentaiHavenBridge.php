@@ -3,7 +3,7 @@ class HentaiHavenBridge extends BridgeAbstract {
 
 	const MAINTAINER = 'albirew';
 	const NAME = 'Hentai Haven';
-	const URI = 'https://hentaihaven.org/';
+	const URI = 'https://hentaihaven.co/';
 	const CACHE_TIMEOUT = 21600; // 6h
 	const DESCRIPTION = 'Returns releases from Hentai Haven';
 
