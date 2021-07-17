@@ -11,14 +11,32 @@ class HeiseBridge extends FeedExpander {
 			'name' => 'Category',
 			'type' => 'list',
 			'values' => array(
-				'Alle News'
+				'heise online - Alle News'
 				=> 'https://www.heise.de/newsticker/heise-atom.xml',
-				'Top-News'
+				'heise online - Top-News'
 				=> 'https://www.heise.de/newsticker/heise-top-atom.xml',
+				'Telepolis'
+				=> 'https://www.heise.de/tp/news-atom.xml',
+				'heise Security'
+				=> 'https://www.heise.de/security/rss/news-atom.xml',
+				'heise Security Warnungen'
+				=> 'https://www.heise.de/security/rss/alert-news-atom.xmll',
+				'Make'
+				=> 'https://www.heise.de/make/rss/hardware-hacks-atom.xml',
+				'iX'
+				=> 'https://www.heise.de/ix/rss/news-atom.xml',
+				'Mac &#x26; i'
+				=> 'https://www.heise.de/mac-and-i/news-atom.xml',
+				'heise Developer'
+				=> 'https://www.heise.de/developer/rss/news-atom.xml',
+				'c&#x27;t'
+				=> 'https://www.heise.de/ct/rss/artikel-atom.xml',
+				'c&#x27;t Fotografie'
+				=> 'https://www.heise.de/foto/rss/news-atom.xml',
+				'heise Autos'
+				=> 'https://www.heise.de/autos/rss/news-atom.xml',
 				'Internet-Störungen'
-				=> 'https://www.heise.de/netze/netzwerk-tools/imonitor-internet-stoerungen/feed/aktuelle-meldungen/',
-				'Alle News von heise Developer'
-				=> 'https://www.heise.de/developer/rss/news-atom.xml'
+				=> 'https://www.heise.de/netze/netzwerk-tools/imonitor-internet-stoerungen/feed/aktuelle-meldungen/'
 			)
 		),
 		'limit' => array(
